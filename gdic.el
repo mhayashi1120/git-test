@@ -13,7 +13,7 @@
 
 ;;; Install:
 
-;; json.el はここからダウンロードしたものを使ってます。
+;; json.el はここからダウンロードしたものを使ってます。Emacs 23 以降には付属しています。
 ;; http://cvs.savannah.gnu.org/viewvc/*checkout*/emacs/lisp/json.el?root=emacs
 
 ;;; Usage:
