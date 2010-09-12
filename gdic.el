@@ -5,12 +5,20 @@
 ;; 
 
 ;; 日本人向け Emacs 用 Google Translater インタフェース
+;; を適当に作ったもの。
+
+;;; Install:
 
 ;; json.el はここからダウンロードしたものを使ってます。
 ;; http://cvs.savannah.gnu.org/viewvc/*checkout*/emacs/lisp/json.el?root=emacs
 
+;;; Usage:
+
+;;    M-x gdic
+;;
 ;; 私は sdic と組み合わせて使っています。
 ;; sdic に対象エントリがないときは gdic を呼び出す感じ。
+
 
 ;;; Code:
 
