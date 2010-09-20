@@ -5,7 +5,7 @@
 ;; 
 
 ;; 日本人向け Emacs 用 Google Translater インタフェース
-;; を適当に作ったもの。
+;; # を適当に作ったもの。(^^;;
 
 ;;; Install:
 
@@ -19,6 +19,9 @@
 ;; 私は sdic と組み合わせて使っています。
 ;; sdic に対象エントリがないときは gdic を呼び出す感じ。
 
+
+;;; TODO:
+;; from は auto にする方がいいかな？ドイツ、フランスなんでもいけるかも。
 
 ;;; Code:
 
@@ -119,31 +122,33 @@
       (setq word (read-from-minibuffer "Word: " word)))
     word))
 
-(defun gdic-to-json (word)
-  (flet ((url-http-user-agent-string () "User-Agent: Mozilla/5.0\r\n")
+(defvar gdic-http-user-agent "Mozilla/5.0")
+
+(defun gdic-search-word/json (word)
+  (require 'url-http)
+  (flet ((url-http-user-agent-string 
+	  () 
+	  (format "User-Agent: %s\r\n" gdic-http-user-agent))
 	 (url-mime-charset-string () nil))
     (let ((url-request-method "POST")
 	  (url-request-data nil)
 	  (url-request-extra-headers '(("Content-Length" . "0")))
 	  (url-mime-charset-string)
-	  (url-extensions-header)))
-    (lexical-let ((from&to (gdic-guessed-from&to word))
-		  json-body buffer proc)
-      (setq buffer (url-retrieve 
-		    (gdic-generate-request-url word (car from&to) (cdr from&to))
-		    (lambda (status &rest cbargs)
-		      (goto-char (point-min))
-		      (re-search-forward "^$" nil t)
-		      (forward-line 1)
-		      (let ((json (buffer-substring (point) (point-max))))
-			(setq json-body 
-			      (gdic-json-read-from-string 
-			       (decode-coding-string json 'utf-8))))
-		      (kill-buffer (current-buffer)))))
-      (setq proc (get-buffer-process buffer))
-      (while (null json-body)
-      	(sit-for 0.1))
-      json-body)))
+	  (url-extensions-header)
+	  (from&to (gdic-guessed-from&to word))
+	  json buffer)
+      (setq buffer (url-retrieve-synchronously
+		    (gdic-generate-request-url word (car from&to) (cdr from&to))))
+      (with-current-buffer buffer
+	(goto-char (point-min))
+	(re-search-forward "^$" nil t)
+	(forward-line 1)
+	(let ((body (buffer-substring (point) (point-max))))
+	  (setq json 
+		(gdic-json-read-from-string 
+		 (decode-coding-string body 'utf-8)))))
+      (kill-buffer buffer)
+      json)))
 
 (defun gdic-guessed-from&to (word)
   (cond
@@ -176,7 +181,7 @@
   (interactive
    (let ((word (gdic-read-word)))
      (list word current-prefix-arg)))
-  (let ((json (gdic-to-json word)))
+  (let ((json (gdic-search-word/json word)))
     (let (message-log-max tmp)
       (setq tmp (message (gdic-format json)))
       (when arg
