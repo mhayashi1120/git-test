@@ -30,7 +30,16 @@
 
 (require 'json)
 
+(defgroup gdic nil
+  "Google translator interface."
+  :group 'tools
+  :prefix "gdic-")
+
 (defvar current-prefix-arg)
+
+(defcustom gdic-format-function 'gdic-format
+  ""
+  :group 'gdic)
 
 (defconst gdic-request-default-parameters
   '(
@@ -135,6 +144,7 @@
 	  (url-request-extra-headers '(("Content-Length" . "0")))
 	  (url-mime-charset-string)
 	  (url-extensions-header)
+	  (url-show-status) ;; suppress message
 	  (from&to (gdic-guessed-from&to word))
 	  json buffer)
       (setq buffer (url-retrieve-synchronously
@@ -183,7 +193,7 @@
      (list word current-prefix-arg)))
   (let ((json (gdic-search-word/json word)))
     (let (message-log-max tmp)
-      (setq tmp (message (gdic-format json)))
+      (setq tmp (message (funcall gdic-format-function json)))
       (when arg
 	(kill-new tmp)))))
 
