@@ -168,10 +168,10 @@
   (cond
    ((string-match "\\cj" word)
     (cons "ja" "en"))
-   ((string-match "\\ca" word)
+   ((string-match "^\\ca+$" word)
     (cons "en" "ja"))
    (t
-    (error "Not supported"))))
+    (cons "auto" "ja"))))
 
 (defun gdic-format (object)
   (let ((summary (gdic-aref (gdic-aref object 0) 0))
@@ -209,10 +209,8 @@
     cached))
 
 
-;; TODO
 ;; echo current word.
 ;; inspired from http://d.hatena.ne.jp/kitokitoki/20100913/p1
-;;
 
 (defvar gdic-echo-timer nil)
 (defvar gdic-echo-word nil)
