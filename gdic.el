@@ -215,11 +215,13 @@
 (defvar gdic-echo-timer nil)
 (defvar gdic-echo-word nil)
 (defvar gdic-echo-idle-delay 1)
+(defvar gdic-auto-echo-mode nil)
 
 (defun gdic-auto-echo-respect-other ()
-  (when (or (null (current-message))
-	    (and gdic-echo-word
-		 (string= (current-message) (cdr gdic-echo-word))))
+  (when (and gdic-auto-echo-mode
+	     (or (null (current-message))
+		 (and gdic-echo-word
+		      (string= (current-message) (cdr gdic-echo-word)))))
     (let ((word (thing-at-point 'word)))
       (if (and word (string-match "^\\ca+" word))
 	  (condition-case err
@@ -240,13 +242,21 @@
 
 (defun gdic-start-auto-echo ()
   (interactive)
+  (set (make-local-variable 'gdic-auto-echo-mode) t)
   (unless gdic-echo-timer
     (setq gdic-echo-timer
 	  (run-with-idle-timer gdic-echo-idle-delay t 'gdic-auto-echo-respect-other))))
 
 (defun gdic-stop-auto-echo ()
   (interactive)
-  (when gdic-echo-timer
+  (kill-local-variable 'gdic-auto-echo-mode)
+  (when (and gdic-echo-timer
+	     (remove nil
+		     (mapcar 
+		      (lambda (b) 
+			(with-current-buffer b
+			  gdic-auto-echo-mode))
+		      (buffer-list))))
     (cancel-timer gdic-echo-timer)
     (setq gdic-echo-timer nil)))
 
