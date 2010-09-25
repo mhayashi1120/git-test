@@ -181,9 +181,70 @@
 	      (fill-region (point-min) (point-max))
 	      (buffer-string)))))
 
+(defun gdic-format-simple (object)
+  (let ((summary (gdic-aref (gdic-aref object 0) 0))
+	(details (gdic-aref (gdic-aref object 1) 0))
+	(type (gdic-aref object 2)))
+    (format "%s [%s] %s"
+	    (mapconcat 'identity summary " ")
+	    (or (gdic-aref details 0) "")
+	    (mapconcat 'identity (gdic-aref details 1) "/"))))
+
 (defun gdic-aref (array idx)
   (when array 
     (aref array idx)))
+
+;;TODO maximum threshold
+(defvar gdic-search-word-hash (make-hash-table :test 'equal))
+
+(defun gdic-search-word/cache/json (word)
+  (let ((cached (gethash word gdic-search-word-hash)))
+    (unless cached
+      (setq cached (gdic-search-word/json word))
+      (puthash word cached gdic-search-word-hash))
+    cached))
+
+
+;; TODO
+;; echo current word.
+;; inspired from http://d.hatena.ne.jp/kitokitoki/20100913/p1
+;;
+
+(defvar gdic-echo-timer nil)
+(defvar gdic-echo-word nil)
+(defvar gdic-echo-idle-delay 1.5)
+
+(defun gdic-auto-echo-respect-eldoc ()
+  (unless (and (boundp 'eldoc-mode) eldoc-mode)
+    (let ((word (thing-at-point 'word)))
+      (if word
+	  (condition-case err
+	      (let ((msg
+		     (if (or (null gdic-echo-word)
+			     (not (string= (car gdic-echo-word) word)))
+			 (gdic-format-simple (gdic-search-word/cache/json word))
+		       (cdr gdic-echo-word))))
+		(let ((message-log-max)
+		      (minibuffer-message-timeout 10))
+		  (message msg))
+		(setq gdic-echo-word (cons word msg)))
+	    ;; stop timer (Denied by google?)
+	    (error (gdic-stop-auto-echo) 
+		   (message "Gdic auto echo is stopped. (Access is denied by google?)")))
+	(message nil)
+	(setq gdic-echo-word nil)))))
+
+(defun gdic-start-auto-echo ()
+  (unless gdic-echo-timer
+    (setq gdic-echo-timer
+	  (run-with-idle-timer gdic-echo-idle-delay t 'gdic-auto-echo-respect-eldoc))))
+
+(defun gdic-stop-auto-echo ()
+  (when gdic-echo-timer
+    (cancel-timer gdic-echo-timer)
+    (setq gdic-echo-timer nil)))
+
+
 
 (defun gdic (word &optional arg)
   "WORD を翻訳する。
