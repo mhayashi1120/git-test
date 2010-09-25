@@ -20,6 +20,10 @@
 ;; sdic に対象エントリがないときは gdic を呼び出す感じ。
 
 
+;;    M-x gdic-start-auto-echo
+;; 
+;; 英語の文書を読むときにカーソル位置の単語を表示してくれます。
+
 ;;; TODO:
 ;; from は auto にする方がいいかな？ドイツ、フランスなんでもいけるかも。
 
@@ -195,13 +199,13 @@
     (aref array idx)))
 
 ;;TODO maximum threshold
-(defvar gdic-search-word-hash (make-hash-table :test 'equal))
+(defvar gdic-search-word-hash-table (make-hash-table :test 'equal))
 
 (defun gdic-search-word/cache/json (word)
-  (let ((cached (gethash word gdic-search-word-hash)))
+  (let ((cached (gethash word gdic-search-word-hash-table)))
     (unless cached
       (setq cached (gdic-search-word/json word))
-      (puthash word cached gdic-search-word-hash))
+      (puthash word cached gdic-search-word-hash-table))
     cached))
 
 
@@ -212,12 +216,14 @@
 
 (defvar gdic-echo-timer nil)
 (defvar gdic-echo-word nil)
-(defvar gdic-echo-idle-delay 1.5)
+(defvar gdic-echo-idle-delay 1)
 
-(defun gdic-auto-echo-respect-eldoc ()
-  (unless (and (boundp 'eldoc-mode) eldoc-mode)
+(defun gdic-auto-echo-respect-other ()
+  (when (or (null (current-message))
+	    (and gdic-echo-word
+		 (string= (current-message) (cdr gdic-echo-word))))
     (let ((word (thing-at-point 'word)))
-      (if word
+      (if (and word (string-match "^\\ca+" word))
 	  (condition-case err
 	      (let ((msg
 		     (if (or (null gdic-echo-word)
@@ -235,11 +241,13 @@
 	(setq gdic-echo-word nil)))))
 
 (defun gdic-start-auto-echo ()
+  (interactive)
   (unless gdic-echo-timer
     (setq gdic-echo-timer
-	  (run-with-idle-timer gdic-echo-idle-delay t 'gdic-auto-echo-respect-eldoc))))
+	  (run-with-idle-timer gdic-echo-idle-delay t 'gdic-auto-echo-respect-other))))
 
 (defun gdic-stop-auto-echo ()
+  (interactive)
   (when gdic-echo-timer
     (cancel-timer gdic-echo-timer)
     (setq gdic-echo-timer nil)))
