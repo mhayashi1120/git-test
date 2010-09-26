@@ -1,8 +1,11 @@
 ;;; -*- coding: utf-8; -*-
 ;;; gdic.el --- Google translator for Japanese
 
+;; URL: http://gist.github.com/575981
+;; Keywords: google translation
+;; Emacs: GNU Emacs 22 or later
+
 ;;; Commentary:
-;; 
 
 ;; 日本人向け Emacs 用 Google Translater インタフェース
 ;; # を適当に作ったもの。(^^;;
@@ -23,6 +26,10 @@
 ;; 
 ;; 英語の文書を読むときにカーソル位置の単語を表示してくれます。
 ;; そのバッファ内でのみ効果があります。
+
+;; (add-hook 'twittering-mode-hook 'gdic-start-auto-echo)
+;;
+;; 特定のモードで常に on にするときは上記を .emacs に記述してください。
 
 ;;; TODO:
 ;; from は auto にする方がいいかな？ドイツ、フランスなんでもいけるかも。
@@ -164,14 +171,25 @@
       (kill-buffer buffer)
       json)))
 
+(defcustom gdic-my-language "ja"
+  "*Google translator に渡す識別子
+en, es, it などなど")
+
+(defcustom gdic-translate-language "en"
+  "世界標準語の英語であるべき識別子 `gdic-my-language'"
+  )
+
+(defvar gdic-my-language-p-function 'gdic-japanese-p)
+
+(defun gdic-japanese-p (word)
+  (string-match "\\cj" word))
+
 (defun gdic-guessed-from&to (word)
   (cond
-   ((string-match "\\cj" word)
-    (cons "ja" "en"))
-   ((string-match "^\\ca+$" word)
-    (cons "en" "ja"))
+   ((gdic-my-language-p word)
+    (cons "auto" gdic-translate-language))
    (t
-    (cons "auto" "ja"))))
+    (cons "auto" gdic-my-language))))
 
 (defun gdic-format (object)
   (let ((summary (gdic-aref (gdic-aref object 0) 0))
@@ -223,7 +241,7 @@
 		 (and gdic-echo-word
 		      (string= (current-message) (cdr gdic-echo-word)))))
     (let ((word (thing-at-point 'word)))
-      (if (and word (not (string-match "^\\cj+" word)))
+      (if (and word (not (gdic-my-language-p word)))
 	  (condition-case err
 	      (let ((msg
 		     (if (or (null gdic-echo-word)
@@ -259,6 +277,9 @@
 		      (buffer-list))))
     (cancel-timer gdic-echo-timer)
     (setq gdic-echo-timer nil)))
+
+(defun gdic-my-language-p (word)
+  (funcall gdic-my-language-p-function word))
 
 
 
