@@ -26,7 +26,6 @@
 
 ;;; TODO:
 ;; from は auto にする方がいいかな？ドイツ、フランスなんでもいけるかも。
-;; kakasi 使って日本語にも対応する？
 
 ;;; Code:
 
@@ -224,7 +223,7 @@
 		 (and gdic-echo-word
 		      (string= (current-message) (cdr gdic-echo-word)))))
     (let ((word (thing-at-point 'word)))
-      (if (and word (string-match "^\\ca+" word))
+      (if (and word (not (string-match "^\\cj+" word)))
 	  (condition-case err
 	      (let ((msg
 		     (if (or (null gdic-echo-word)
