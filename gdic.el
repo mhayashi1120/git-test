@@ -178,7 +178,7 @@
 en, es, it などなど")
 
 (defcustom gdic-translate-language "en"
-  "TODO 世界標準語の英語であるべき識別子 `gdic-my-language'"
+  "TODO 識別子 世界標準語の英語であるべき `gdic-my-language'"
   )
 
 (defvar gdic-my-language-p-function 'gdic-japanese-p)
