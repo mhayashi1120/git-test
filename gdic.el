@@ -7,6 +7,7 @@
 ;; Emacs: GNU Emacs 22 or later
 ;; Version: 0.1.0
 
+
 ;;; Commentary:
 
 ;; 日本人向け Emacs 用 Google Translater インタフェース
