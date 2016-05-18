@@ -1,6 +1,7 @@
 ;;; -*- coding: utf-8; -*-
 ;;; gdic.el --- Google translator for Japanese
 
+
 ;; URL: http://gist.github.com/575981
 ;; Keywords: google translation
 ;; Emacs: GNU Emacs 22 or later
