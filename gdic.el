@@ -4,6 +4,7 @@
 ;; URL: http://gist.github.com/575981
 ;; Keywords: google translation
 ;; Emacs: GNU Emacs 22 or later
+;; Version: 0.1.0
 
 ;;; Commentary:
 
@@ -32,7 +33,8 @@
 ;; 特定のモードで常に on にするときは上記を .emacs に記述してください。
 
 ;;; TODO:
-;; from は auto にする方がいいかな？ドイツ、フランスなんでもいけるかも。
+;; guess charset 
+;; バッファとか major-mode ごとに言語の優先度みたいなのを設定可能にするとか？
 
 ;;; Code:
 
@@ -66,7 +68,7 @@
     ))
 
 (defconst gdic-base-url "http://translate.google.co.jp/translate_a/t")
-    
+
 (defun gdic-generate-request-url (word from to)
   (format "%s?%s"
 	  gdic-base-url
@@ -172,11 +174,11 @@
       json)))
 
 (defcustom gdic-my-language "ja"
-  "*Google translator に渡す識別子
+  "TODO Google translator に渡す識別子
 en, es, it などなど")
 
 (defcustom gdic-translate-language "en"
-  "世界標準語の英語であるべき識別子 `gdic-my-language'"
+  "TODO 世界標準語の英語であるべき識別子 `gdic-my-language'"
   )
 
 (defvar gdic-my-language-p-function 'gdic-japanese-p)
@@ -241,7 +243,7 @@ en, es, it などなど")
 		 (and gdic-echo-word
 		      (string= (current-message) (cdr gdic-echo-word)))))
     (let ((word (thing-at-point 'word)))
-      (if (and word (not (gdic-my-language-p word)))
+      (if (and word (not (string= word "")) (not (gdic-my-language-p word)))
 	  (condition-case err
 	      (let ((msg
 		     (if (or (null gdic-echo-word)
